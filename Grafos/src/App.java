@@ -38,7 +38,6 @@ public class App {
             gravarArq.printf("------------------------------------Id cidade: " + i + " | Nome da cidade: "
                     + cidades[i].getNome());
             for (int j = 0; j < (cidades.length); j++) {
-                gravarArq.printf("\nId cidade: " + j + " | Nome da cidade: " + cidades[j].getNome());
                 gravarArq.printf("\nDistancia entre as cidades " + cidades[i].getNome() + " e " + cidades[j].getNome()
                         + " é " + cidades[i].distancia(cidades[j]));
             }
