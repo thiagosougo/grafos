@@ -18,23 +18,9 @@ public class App {
         ArrayList<Cidade> cidades = lerCidades(quant);
 
         Grafo grafo = new Grafo(cidades);
-        grafo.buscaLargura(0);
+        // grafo.buscaLargura(0);
 
-        // FileWriter arq = new FileWriter("distancias.txt");
-        // PrintWriter gravarArq = new PrintWriter(arq);
-
-        // for (int i = 0; i < (cidades.length); i++) {
-        // gravarArq.printf("------------------------------------Id cidade: " + i + " |
-        // Nome da cidade: "
-        // + cidades[i].getNome());
-        // for (int j = 0; j < (cidades.length); j++) {
-        // gravarArq.printf("\nDistancia entre as cidades " + cidades[i].getNome() + " e
-        // " + cidades[j].getNome()
-        // + " é " + cidades[i].distancia(cidades[j]));
-        // }
-        // gravarArq.printf("\n\n");
-        // }
-        // arq.close();
+        System.out.println(grafo.encontrarCiclo(0));
 
     }
 

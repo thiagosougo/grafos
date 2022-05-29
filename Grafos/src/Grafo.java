@@ -2,15 +2,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Queue;
 
 public class Grafo {
 
     private double[][] matrizAdjacencia;
-    private int quant; //numero de vertices
+    private int quant; // numero de vertices
 
     Grafo(ArrayList<Cidade> cidades) {
 
-        quant = cidades.size();
+        // quant = cidades.size();
+        quant = 10;
 
         matrizAdjacencia = new double[quant][quant];
 
@@ -21,7 +23,7 @@ public class Grafo {
             }
         }
 
-        // printMatrizAdjacencia();
+        printMatrizAdjacencia();
 
         // deixa somente as 3 menores distancias
         for (int i = 0; i < quant; i++) {
@@ -55,15 +57,15 @@ public class Grafo {
             }
         }
 
-        // printMatrizAdjacencia();
+        printMatrizAdjacencia();
     }
 
     /**
      * Busca em largura a partir do vértice 'raiz'
+     * 
      * @param raiz
      */
-    void buscaLargura(int raiz)
-    {
+    void buscaLargura(int raiz) {
         System.out.println("Busca em largura\n");
 
         boolean foiVisitado[] = new boolean[quant];
@@ -71,17 +73,16 @@ public class Grafo {
 
         LinkedList<Integer> fila = new LinkedList<Integer>();
 
-        foiVisitado[raiz]=true;
+        foiVisitado[raiz] = true;
         fila.add(raiz);
 
-        while (fila.size() != 0)
-        {
+        while (fila.size() != 0) {
             // remove o vertice explorado da fila
             raiz = fila.poll();
-            System.out.print(raiz+" ");
+            System.out.print(raiz + " ");
 
             // lista de vertices adjacentes ao vertice atual
-            LinkedList<Integer>listaAdjacentes = new LinkedList<Integer>();
+            LinkedList<Integer> listaAdjacentes = new LinkedList<Integer>();
             for (int i = 0; i < quant; i++) {
                 if (matrizAdjacencia[raiz][i] != 0) {
                     listaAdjacentes.add(i);
@@ -90,16 +91,62 @@ public class Grafo {
 
             // lpercorre a lista de vertices adjacentes e encontra os nao visitados
             Iterator<Integer> i = listaAdjacentes.listIterator();
-            while (i.hasNext())
-            {
+            while (i.hasNext()) {
                 int n = i.next();
-                if (!foiVisitado[n])
-                {
+                if (!foiVisitado[n]) {
                     foiVisitado[n] = true;
                     fila.add(n);
                 }
             }
         }
+    }
+
+    public boolean encontrarCiclo(int raiz) {
+
+        boolean visited[] = new boolean[quant];
+
+        // Set parent vertex for every vertex as -1.
+        int parent[] = new int[quant];
+        Arrays.fill(parent, -1);
+
+        // Create a queue for BFS
+        Queue<Integer> q = new LinkedList<>();
+
+        // Mark the current node as
+        // visited and enqueue it
+        visited[raiz] = true;
+        q.add(raiz);
+
+        while (!q.isEmpty()) {
+
+            // Dequeue a vertex from queue and print it
+            int u = q.poll();
+
+            // lista de vertices adjacentes
+            ArrayList<Integer> listaAdjacentes = new ArrayList<>();
+            for (int i = 0; i < quant; i++) {
+                if (matrizAdjacencia[u][i] != 0) {
+                    listaAdjacentes.add(i);
+                }
+            }
+
+            // Get all adjacent vertices
+            // of the dequeued vertex u.
+            // If a adjacent has not been
+            // visited, then mark it visited
+            // and enqueue it. We also mark parent
+            // so that parent is not considered for cycle.
+            for (int i = 0; i < listaAdjacentes.size(); i++) {
+                int v = listaAdjacentes.get(i);
+                if (!visited[v]) {
+                    visited[v] = true;
+                    q.add(v);
+                    parent[v] = u;
+                } else if (parent[u] != v)
+                    return true;
+            }
+        }
+        return false;
     }
 
     public double[][] getMatrizAdjacencia() {
