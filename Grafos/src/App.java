@@ -16,7 +16,9 @@ public class App {
         f.fecharArq();
 
         ArrayList<Cidade> cidades = lerCidades(quant);
-        criarGrafo(cidades);
+
+        Grafo grafo = new Grafo(cidades);
+        grafo.buscaLargura(0);
 
         // FileWriter arq = new FileWriter("distancias.txt");
         // PrintWriter gravarArq = new PrintWriter(arq);
