@@ -58,8 +58,7 @@ public class App {
 
     private static double[][] criarGrafo(ArrayList<Cidade> cidades) {
 
-        int quant = 10;
-        System.out.println(quant);
+        int quant = cidades.size();
 
         double grafo[][] = new double[quant][quant];
 
@@ -95,6 +94,16 @@ public class App {
                     grafo[i][j] = 0;
                 } else {
                     grafo[i][posMaior] = 0;
+                }
+            }
+        }
+
+        // deixar o grafo simetrico depois da remoção de arestas
+        // (se a cidade X tem aresta para a cidade Y, Y tem para X)
+        for (int i = 0; i < quant; i++) {
+            for (int j = 0; j < quant; j++) {
+                if (grafo[i][j] != 0) {
+                    grafo[j][i] = grafo[i][j];
                 }
             }
         }
