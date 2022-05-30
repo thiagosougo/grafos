@@ -1,7 +1,5 @@
 import java.util.ArrayList;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 public class App {
 
@@ -18,10 +16,11 @@ public class App {
         ArrayList<Cidade> cidades = lerCidades(quant);
 
         Grafo grafo = new Grafo(cidades);
-        // grafo.buscaLargura(0);
 
-        System.out.println(grafo.encontrarCiclo(0));
-
+        // Testes
+        grafo.buscaLargura(0);
+        System.out.println(grafo.encontrarCiclo(2, 8));
+        
     }
 
     private static ArrayList<Cidade> lerCidades(int quant) {

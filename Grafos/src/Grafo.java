@@ -11,8 +11,7 @@ public class Grafo {
 
     Grafo(ArrayList<Cidade> cidades) {
 
-        // quant = cidades.size();
-        quant = 10;
+        quant = cidades.size();
 
         matrizAdjacencia = new double[quant][quant];
 
@@ -66,7 +65,7 @@ public class Grafo {
      * @param raiz
      */
     void buscaLargura(int raiz) {
-        System.out.println("Busca em largura\n");
+        System.out.println("Busca em largura a partir de " + raiz);
 
         boolean foiVisitado[] = new boolean[quant];
         Arrays.fill(foiVisitado, false);
@@ -78,18 +77,18 @@ public class Grafo {
 
         while (fila.size() != 0) {
             // remove o vertice explorado da fila
-            raiz = fila.poll();
-            System.out.print(raiz + " ");
+            int v = fila.poll();
+            System.out.print(v + "\t");
 
             // lista de vertices adjacentes ao vertice atual
             LinkedList<Integer> listaAdjacentes = new LinkedList<Integer>();
             for (int i = 0; i < quant; i++) {
-                if (matrizAdjacencia[raiz][i] != 0) {
+                if (matrizAdjacencia[v][i] != 0) {
                     listaAdjacentes.add(i);
                 }
             }
 
-            // lpercorre a lista de vertices adjacentes e encontra os nao visitados
+            // percorre a lista de vertices adjacentes e encontra os nao visitados
             Iterator<Integer> i = listaAdjacentes.listIterator();
             while (i.hasNext()) {
                 int n = i.next();
@@ -99,53 +98,86 @@ public class Grafo {
                 }
             }
         }
+        System.out.println();
     }
 
-    public boolean encontrarCiclo(int raiz) {
-
+    /**
+     * Verifica se existe um ciclo que contém os vértices raiz e intermed
+     * @param raiz
+     * @param intermed
+     * @return
+     */
+    boolean encontrarCiclo(int raiz, int intermed) {
+        int pais[] = new int[quant];
+        Arrays.fill(pais, -1);
         boolean visited[] = new boolean[quant];
 
-        // Set parent vertex for every vertex as -1.
-        int parent[] = new int[quant];
-        Arrays.fill(parent, -1);
+        return encontrarCiclo(raiz, raiz, intermed, pais, visited);
+    }
 
-        // Create a queue for BFS
-        Queue<Integer> q = new LinkedList<>();
+    /**
+     * Chamada recursiva de encontrarCiclo()
+     * @param v
+     * @param raiz
+     * @param intermed
+     * @param pais
+     * @param visited
+     * @return
+     */
+    boolean encontrarCiclo(int v, int raiz, int intermed, int pais[], boolean visited[]) {
 
-        // Mark the current node as
-        // visited and enqueue it
-        visited[raiz] = true;
-        q.add(raiz);
+        visited[v] = true;
 
-        while (!q.isEmpty()) {
-
-            // Dequeue a vertex from queue and print it
-            int u = q.poll();
-
-            // lista de vertices adjacentes
-            ArrayList<Integer> listaAdjacentes = new ArrayList<>();
-            for (int i = 0; i < quant; i++) {
-                if (matrizAdjacencia[u][i] != 0) {
-                    listaAdjacentes.add(i);
-                }
-            }
-
-            // Get all adjacent vertices
-            // of the dequeued vertex u.
-            // If a adjacent has not been
-            // visited, then mark it visited
-            // and enqueue it. We also mark parent
-            // so that parent is not considered for cycle.
-            for (int i = 0; i < listaAdjacentes.size(); i++) {
-                int v = listaAdjacentes.get(i);
-                if (!visited[v]) {
-                    visited[v] = true;
-                    q.add(v);
-                    parent[v] = u;
-                } else if (parent[u] != v)
-                    return true;
+        // lista de vertices adjacentes ao vertice atual
+        LinkedList<Integer> listaAdjacentes = new LinkedList<Integer>();
+        for (int i = 0; i < quant; i++) {
+            if (matrizAdjacencia[v][i] != 0) {
+                listaAdjacentes.add(i);
             }
         }
+
+        Iterator<Integer> i = listaAdjacentes.listIterator();
+        while (i.hasNext()) {
+            int n = i.next();
+
+            if (n == raiz && pais[v] != n) {
+
+                if (intermedEstaNoCiclo(intermed, v, pais)) {
+                    printCiclo(pais, v);
+                    return true;
+                }
+
+            } else if (!visited[n]) {
+                pais[n] = v;
+                boolean ciclo = encontrarCiclo(n, raiz, intermed, pais, visited);
+                if (ciclo)
+                    return ciclo;
+            }
+
+        }
+        return false;
+    }
+
+    private void printCiclo(int pais[], int fimCiclo) {
+        System.out.println("Ciclo encontrado");
+        int k = fimCiclo;
+        while (k != -1) {
+            System.out.print(k + "\t");
+            k = pais[k];
+        }
+        System.out.println();
+
+    }
+
+    private boolean intermedEstaNoCiclo(int intermed, int fimCiclo, int pais[]) {
+        int k = fimCiclo;
+        while (k != -1) {
+            if (k == intermed) {
+                return true;
+            }
+            k = pais[k];
+        }
+
         return false;
     }
 
