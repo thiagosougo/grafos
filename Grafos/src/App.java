@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.util.Scanner;
 import java.io.IOException;
 
 public class App {
@@ -7,6 +9,8 @@ public class App {
     private static final String NOME_ARQUIVO = "./../br.csv";
     // #endregion
 
+    static Scanner teclado = new Scanner(System.in);
+
     public static void main(String[] args) throws IOException {
         ArquivoLeitura f = new ArquivoLeitura(NOME_ARQUIVO);
 
@@ -14,13 +18,75 @@ public class App {
         f.fecharArq();
 
         ArrayList<Cidade> cidades = lerCidades(quant);
-
         Grafo grafo = new Grafo(cidades);
 
-        // Testes
-        grafo.buscaLargura(0);
-        System.out.println(grafo.encontrarCiclo(2, 8));
-        
+        int opcao;
+        do {
+
+            opcao = menu(teclado);
+
+            switch (opcao) {
+                case 1:
+                    grafo.printMatrizAdjacencia();
+                    break;
+                case 2:
+                    int raiz;
+                    System.out.println("Digite a raiz: ");
+                    try {
+                        raiz = teclado.nextInt();
+                        teclado.nextLine();
+                        grafo.buscaLargura(raiz);
+                    } catch (InputMismatchException ex) {
+                        teclado.nextLine();
+                        System.out.println("Somente opções numéricas.");
+                    }
+                    break;
+                case 3:
+                    int raizCiclo, intermedCiclo;
+
+                    try {
+                        System.out.println("Digite a raiz: ");
+                        raizCiclo = teclado.nextInt();
+                        teclado.nextLine();
+                        System.out.println("Digite o intermediario: ");
+                        intermedCiclo = teclado.nextInt();
+                        teclado.nextLine();
+                        if (!grafo.encontrarCiclo(raizCiclo, intermedCiclo)) {
+                            System.out.println("Ciclo nao encontrado");
+                        }
+                    } catch (InputMismatchException ex) {
+                        teclado.nextLine();
+                        System.out.println("Somente opções numéricas.");
+                    }
+                    break;
+                case 4:
+                    int raizCMin, destino;
+
+                    try {
+                        System.out.println("Digite a raiz: ");
+                        raizCMin = teclado.nextInt();
+                        teclado.nextLine();
+                        System.out.println("Digite o destino: ");
+                        destino = teclado.nextInt();
+                        teclado.nextLine();
+                        double caminhoMinimo = grafo.caminhoMinimo(raizCMin, destino);
+                        if (caminhoMinimo == -1) {
+                            System.out.println("Caminho nao encontrado");
+                        } else {
+                            System.out.format("Caminho minimo: %.0f\n", caminhoMinimo);
+                        }
+
+                    } catch (InputMismatchException ex) {
+                        teclado.nextLine();
+                        System.out.println("Somente opções numéricas.");
+                    }
+                    break;
+                default:
+                    break;
+
+            }
+            pausa(teclado);
+        } while (opcao != 0);
     }
 
     private static ArrayList<Cidade> lerCidades(int quant) {
@@ -43,66 +109,27 @@ public class App {
         return cidades;
     }
 
-    private static double[][] criarGrafo(ArrayList<Cidade> cidades) {
-
-        int quant = cidades.size();
-
-        double grafo[][] = new double[quant][quant];
-
-        for (int i = 0; i < quant; i++) {
-            for (int j = i + 1; j < quant; j++) {
-                grafo[i][j] = cidades.get(i).distancia(cidades.get(j));
-                grafo[j][i] = grafo[i][j];
-            }
+    public static int menu(Scanner teclado) {
+        System.out.println("======== Menu =======");
+        System.out.println("1 - Imprimir matriz de adjacência (considerando -1 como distancia infinita)");
+        System.out.println("2 - Busca em largura");
+        System.out.println("3 - Encontrar ciclo");
+        System.out.println("4 - Encontrar caminho minimo");
+        System.out.println("0 - Sair");
+        int opcao = 0;
+        try {
+            opcao = teclado.nextInt();
+            teclado.nextLine();
+        } catch (InputMismatchException ex) {
+            teclado.nextLine();
+            System.out.println("Somente opções numéricas.");
+            opcao = -1;
         }
-        System.out.println("GRAFO");
-        for (int i = 0; i < quant; i++) {
-            for (int j = 0; j < quant; j++) {
-                System.out.format("%.0f\t", grafo[i][j]);
-            }
-            System.out.println("\n");
-        }
+        return opcao;
+    }
 
-        // deixa somente as 3 menores distancias
-        for (int i = 0; i < quant; i++) {
-            for (int j = 4; j < quant; j++) {
-
-                double maior = 0; // maior valor na linha i
-                int posMaior = 0; // posicao do maior valor na linha i
-                for (int k = 0; k < j; k++) {
-                    if (grafo[i][j] < grafo[i][k]) {
-                        if (maior < grafo[i][k]) {
-                            maior = grafo[i][k];
-                            posMaior = k;
-                        }
-                    }
-                }
-                if (maior == 0) {
-                    grafo[i][j] = 0;
-                } else {
-                    grafo[i][posMaior] = 0;
-                }
-            }
-        }
-
-        // deixar o grafo simetrico depois da remoção de arestas
-        // (se a cidade X tem aresta para a cidade Y, Y tem para X)
-        for (int i = 0; i < quant; i++) {
-            for (int j = 0; j < quant; j++) {
-                if (grafo[i][j] != 0) {
-                    grafo[j][i] = grafo[i][j];
-                }
-            }
-        }
-
-        System.out.println("GRAFO REDUZIDO");
-        for (int i = 0; i < quant; i++) {
-            for (int j = 0; j < quant; j++) {
-                System.out.format("%.0f\t", grafo[i][j]);
-            }
-            System.out.println("\n");
-        }
-
-        return grafo;
+    private static void pausa(Scanner teclado) {
+        System.out.println("Enter para continuar.");
+        teclado.nextLine();
     }
 }

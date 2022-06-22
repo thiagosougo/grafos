@@ -1,17 +1,26 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Queue;
 
 public class Grafo {
 
     private double[][] matrizAdjacencia;
     private int quant; // numero de vertices
 
+    // para dijkstra
+    HashSet<Integer> visitados;
+    double dist[];
+    LinkedList<Integer> fila = new LinkedList<>();
+
+    // auxiliar
+    LinkedList<LinkedList<Integer>> listaAdjacentes = new LinkedList<>();
+
     Grafo(ArrayList<Cidade> cidades) {
 
         quant = cidades.size();
+        dist = new double[quant];
 
         matrizAdjacencia = new double[quant][quant];
 
@@ -22,13 +31,11 @@ public class Grafo {
             }
         }
 
-        printMatrizAdjacencia();
-
         // deixa somente as 3 menores distancias
         for (int i = 0; i < quant; i++) {
             for (int j = 4; j < quant; j++) {
 
-                double maior = 0; // maior valor na linha i
+                double maior = -1; // maior valor na linha i
                 int posMaior = 0; // posicao do maior valor na linha i
                 for (int k = 0; k < j; k++) {
                     if (matrizAdjacencia[i][j] < matrizAdjacencia[i][k]) {
@@ -38,10 +45,10 @@ public class Grafo {
                         }
                     }
                 }
-                if (maior == 0) {
-                    matrizAdjacencia[i][j] = 0;
+                if (maior == -1) {
+                    matrizAdjacencia[i][j] = -1;
                 } else {
-                    matrizAdjacencia[i][posMaior] = 0;
+                    matrizAdjacencia[i][posMaior] = -1;
                 }
             }
         }
@@ -50,13 +57,28 @@ public class Grafo {
         // (se a cidade X tem aresta para a cidade Y, Y tem para X)
         for (int i = 0; i < quant; i++) {
             for (int j = 0; j < quant; j++) {
-                if (matrizAdjacencia[i][j] != 0) {
+                if (matrizAdjacencia[i][j] != -1) {
                     matrizAdjacencia[j][i] = matrizAdjacencia[i][j];
                 }
             }
         }
 
-        printMatrizAdjacencia();
+        criarListaAdjacentes();
+    }
+
+    /**
+     * Cria lista de vertices adjacentes para cada vertice do grafo
+     */
+    private void criarListaAdjacentes() {
+
+        for (int i = 0; i < quant; i++) {
+            listaAdjacentes.add(new LinkedList<>());
+            for (int j = 0; j < quant; j++) {
+                if (matrizAdjacencia[i][j] > 0) {
+                    listaAdjacentes.get(i).add(j);
+                }
+            }
+        }
     }
 
     /**
@@ -83,7 +105,7 @@ public class Grafo {
             // lista de vertices adjacentes ao vertice atual
             LinkedList<Integer> listaAdjacentes = new LinkedList<Integer>();
             for (int i = 0; i < quant; i++) {
-                if (matrizAdjacencia[v][i] != 0) {
+                if (matrizAdjacencia[v][i] > 0) {
                     listaAdjacentes.add(i);
                 }
             }
@@ -103,40 +125,34 @@ public class Grafo {
 
     /**
      * Verifica se existe um ciclo que contém os vértices raiz e intermed
+     * 
      * @param raiz
      * @param intermed
      * @return
      */
-    boolean encontrarCiclo(int raiz, int intermed) {
+    public boolean encontrarCiclo(int raiz, int intermed) {
         int pais[] = new int[quant];
         Arrays.fill(pais, -1);
-        boolean visited[] = new boolean[quant];
+        visitados = new HashSet<>();
 
-        return encontrarCiclo(raiz, raiz, intermed, pais, visited);
+        return encontrarCiclo(raiz, raiz, intermed, pais);
     }
 
     /**
      * Chamada recursiva de encontrarCiclo()
+     * 
      * @param v
      * @param raiz
      * @param intermed
      * @param pais
-     * @param visited
+     * @param visitados
      * @return
      */
-    boolean encontrarCiclo(int v, int raiz, int intermed, int pais[], boolean visited[]) {
+    private boolean encontrarCiclo(int v, int raiz, int intermed, int pais[]) {
 
-        visited[v] = true;
+        visitados.add(v);
 
-        // lista de vertices adjacentes ao vertice atual
-        LinkedList<Integer> listaAdjacentes = new LinkedList<Integer>();
-        for (int i = 0; i < quant; i++) {
-            if (matrizAdjacencia[v][i] != 0) {
-                listaAdjacentes.add(i);
-            }
-        }
-
-        Iterator<Integer> i = listaAdjacentes.listIterator();
+        Iterator<Integer> i = listaAdjacentes.get(v).listIterator();
         while (i.hasNext()) {
             int n = i.next();
 
@@ -147,9 +163,9 @@ public class Grafo {
                     return true;
                 }
 
-            } else if (!visited[n]) {
+            } else if (!visitados.contains(n)) {
                 pais[n] = v;
-                boolean ciclo = encontrarCiclo(n, raiz, intermed, pais, visited);
+                boolean ciclo = encontrarCiclo(n, raiz, intermed, pais);
                 if (ciclo)
                     return ciclo;
             }
@@ -160,11 +176,15 @@ public class Grafo {
 
     private void printCiclo(int pais[], int fimCiclo) {
         System.out.println("Ciclo encontrado");
+        StringBuilder sb = new StringBuilder();
         int k = fimCiclo;
+        int raiz = k;
         while (k != -1) {
-            System.out.print(k + "\t");
+            sb.append(k + "\t");
+            raiz = k;
             k = pais[k];
         }
+        System.out.println(raiz + "\t" + sb.toString());
         System.out.println();
 
     }
@@ -192,6 +212,66 @@ public class Grafo {
                 System.out.format("%.0f\t", matrizAdjacencia[i][j]);
             }
             System.out.println("\n");
+        }
+    }
+
+    /**
+     * Caminho mínimo a partir do vértice raiz utilizando o algoritmo de Dijkstra
+     * 
+     * @param origem
+     * @param destino
+     * @return distancia mínima entre os 2 vertices fornecidos como parâmetro.
+     *         Retorna -1 se não existir um caminho entre os vértices
+     */
+    public double caminhoMinimo(int origem, int destino) {
+
+        visitados = new HashSet<>();
+
+        // considerando -1 como distancia infinita
+        for (int i = 0; i < quant; i++)
+            dist[i] = -1;
+
+        fila.add(origem);
+        dist[origem] = 0;
+
+        while (visitados.size() != quant) {
+
+            if (fila.isEmpty()) {
+                break;
+            }
+            int u = fila.remove();
+            visitados.add(u);
+
+            verificarVerticesAdjacentes(u);
+        }
+
+        return dist[destino];
+    }
+
+    /**
+     * Auxiliar de Dijkstra
+     * 
+     * @param u Vértice atual
+     */
+    private void verificarVerticesAdjacentes(int u) {
+
+        double novaDistancia = -1;
+
+        for (int i = 0; i < listaAdjacentes.get(u).size(); i++) {
+            int v = listaAdjacentes.get(u).get(i);
+
+            if (!visitados.contains(v)) {
+                novaDistancia = dist[u] + matrizAdjacencia[u][v];
+
+                // se a nova distancia for menor, ela é atualizada
+                if (novaDistancia < dist[v] || dist[v] == -1) {
+                    dist[v] = novaDistancia;
+                }
+
+                if (!fila.contains(v)) {
+                    fila.add(v);
+                }
+            }
         }
     }
 }
